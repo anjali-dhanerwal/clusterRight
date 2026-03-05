@@ -156,5 +156,5 @@ sample api call "curl http://<IP>:8085/invocations  -H "Content-Type: applicatio
 
 ### Upload Output to S3
 ```bash
-aws s3 cp <Output Files> s3://<Bucket Name>
+aws s3 cp <Output Files> s3://<Bucket Name>/reports --recursive 
 ```
