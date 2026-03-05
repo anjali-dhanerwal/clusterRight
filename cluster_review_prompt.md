@@ -235,7 +235,7 @@ Verify logging configuration for compliance, troubleshooting, and audit requirem
    --reference-doc=template.docx  # optional: for custom styling
 
 - **Markdown Structure:** Use proper heading hierarchy (# for main sections, ## for subsections)
-- **TOC Generation:** Pandoc will auto-generate TOC with page numbers from heading structure
+- **TOC Generation:** Pandoc will auto-generate TOC without page numbers from heading structure
 - **Styling:** Executive-ready with consistent headings, fonts, and visual hierarchy
 - **Images:** Embedded high-resolution PNGs with figure numbering and in-text references
 - **Document Sections (in order):**
