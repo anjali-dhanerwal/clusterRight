@@ -31,7 +31,7 @@ app = BedrockAgentCoreApp()
 
 # Global variables
 aws_region = os.getenv("AWS_REGION", "us-east-1")
-bedrock_model = None
+bedrock_model = os.getenv("BEDROCK_MODEL_ID")
 mcp_server_postgres = MCPClient(
             lambda: stdio_client(
                 StdioServerParameters(
@@ -92,7 +92,7 @@ mcp_server_doc = MCPClient(
 def ensure_session_token():
     """Ensure valid session token exists"""
     session_token = os.getenv("AWS_SESSION_TOKEN")
-   
+    print(session_token)
     if not session_token or session_token == "your_aws_session_token_here":
         if refresh_session_token_in_env():
             print("✅ Session token ready")
@@ -116,7 +116,7 @@ def setup_bedrock_model():
     )
     
     bedrock_model = BedrockModel(
-        model_id="global.anthropic.claude-opus-4-6-v1",
+        model_id=bedrock_model,
         max_tokens=100000,
         temperature=0.1,
         region_name=aws_region,
@@ -137,17 +137,15 @@ def analyze_query(query: str) -> str:
     """Analyze AWS queries using MCP tools and Bedrock AI"""
     
     try:
+        ensure_session_token()
         # Read the prompt template from file
         prompt_file = os.path.join(os.path.dirname(__file__), "cluster_review_prompt.md")
         with open(prompt_file, 'r') as f:
             prompt_template = f.read()
         
         system_prompt = f"""You are an AWS expert specializing in Aurora database analysis.{prompt_template}"""
-      
-       
-        ensure_session_token()
-        if bedrock_model is None:
-            setup_bedrock_model()
+       # if bedrock_model is None:
+        #    setup_bedrock_model()
         
         print("🔄 Connecting to MCP servers...")
         with (mcp_server_cloud_control,mcp_server_postgres,mcp_server_cloudwatch,mcp_server_pricing,mcp_server_doc):
