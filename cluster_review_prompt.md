@@ -10,8 +10,8 @@ Use official AWS documentation as the authoritative source for version lifecycle
 
 - **Cluster Identifier:** If no cluster name given by user, ask for cluster name
 - **Engine:** Identify engine
-- **Output Directory:** If no location given by users, use current directory of user
-- **Output File:** `Aurora_{cluster_name}_WellArchitected_HealthCheck_{current_date}.docx`
+- **Output Directory:** /home/ec2-user or users home directory. ~/reports/ (create if not exists). Save all images and temporary data in this folder.
+- **Output File:** `Aurora_{cluster_name}_WellArchitected_HealthCheck_{current_epoc}.docx`
 - **Cloud Watch Metrics param :
     Time range:** Use range given by user, if no rabge provided use defualt value as 15 days
     Granularity:** 1-minute intervals
@@ -225,18 +225,22 @@ Verify logging configuration for compliance, troubleshooting, and audit requirem
 ## Output Format
 
 - **Format:** Microsoft Word (.docx) via Pandoc in Landscape Orientation
+- **Pandoc Command:** 
+  bash
+ pandoc input.md -o output.docx \
+   --toc \
+   --toc-depth=3 \
+   -V geometry:landscape \
+   -V fontsize=11pt \
+   --reference-doc=template.docx  # optional: for custom styling
+
+- **Markdown Structure:** Use proper heading hierarchy (# for main sections, ## for subsections)
+- **TOC Generation:** Pandoc will auto-generate TOC with page numbers from heading structure
 - **Styling:** Executive-ready with consistent headings, fonts, and visual hierarchy
-- **Table of Contents:** : Auto-generated with navigation and correct page numbers
 - **Images:** Embedded high-resolution PNGs with figure numbering and in-text references
-- **Structure:**
-  1. Executive Summary
-  2. Well-Architected Assessment
-  3. Performance Analysis (with CloudWatch visualizations)
-  4. Cost Optimization (with Savings Plans vs. RI decision matrix)
-  5. Security & Compliance Review
-  6. Operational Excellence Evaluation
-  7. Reliability Assessment
-  8. Implementation Roadmap
+- **Document Sections (in order):**
+  Executive Summary → Well-Architected Assessment → Performance Analysis → Cost Optimization → Security & Compliance → Operational Excellence → Reliability Assessment → Implementation Roadmap
+
 
 ---
 

@@ -117,7 +117,7 @@ def setup_bedrock_model():
     bedrock_model_id=os.getenv("BEDROCK_MODEL_ID")
     bedrock_model = BedrockModel(
         model_id=bedrock_model_id,
-        max_tokens=100000,
+        max_tokens=128000,
         temperature=0.1,
         region_name=aws_region,
         boto_client_config=boto_config
