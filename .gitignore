@@ -56,3 +56,7 @@ response.json
 
 # Docker
 .dockerignore
+
+#Previous Versions of Prompt
+cluster_review_prompt V1.md
+cluster_review_prompt V2.md
