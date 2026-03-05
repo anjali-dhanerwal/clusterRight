@@ -93,7 +93,7 @@ def ensure_session_token():
     """Ensure valid session token exists"""
     session_token = os.getenv("AWS_SESSION_TOKEN")
     print(session_token)
-    if not session_token or session_token == "your_aws_session_token_here":
+    if not session_token or session_token == "your_aws_session_token_here" or session_token == "your_session_token_here":
         if refresh_session_token_in_env():
             print("✅ Session token ready")
         else:
