@@ -37,6 +37,7 @@ mcp_server_postgres = MCPClient(
                 StdioServerParameters(
                     command="uvx", 
                     args=["awslabs.postgres-mcp-server@latest"],
+                    startup_timeout=120,
                     env=get_mcp_environment()
                 )
             ),
@@ -49,6 +50,7 @@ mcp_server_cloudwatch = MCPClient(
                 StdioServerParameters(
                     command="uvx", 
                     args=["awslabs.cloudwatch-mcp-server@latest"],
+                    startup_timeout=120,
                     env=get_mcp_environment()
                 )
             ),
@@ -61,6 +63,7 @@ mcp_server_cloud_control = MCPClient(
         StdioServerParameters(
             command="uvx", 
             args=["awslabs.ccapi-mcp-server@latest"],
+            startup_timeout=120,
             env=get_mcp_environment()
         )
     ),
@@ -72,6 +75,7 @@ mcp_server_pricing = MCPClient(
         StdioServerParameters(
             command="uvx", 
             args=["awslabs.billing-cost-management-mcp-server@latest"],
+            startup_timeout=120,
             env=get_mcp_environment()
         )
     ),
@@ -83,6 +87,7 @@ mcp_server_doc = MCPClient(
         StdioServerParameters(
             command="uvx", 
             args=["awslabs.aws-documentation-mcp-server@latest"],
+            startup_timeout=120,
             env=get_mcp_environment()
         )
     ),
@@ -143,7 +148,7 @@ def analyze_query(query: str) -> str:
         with open(prompt_file, 'r') as f:
             prompt_template = f.read()
         
-        system_prompt = f"""You are an AWS expert specializing in Aurora database analysis.{prompt_template}. Execute shell commands directly without asking the user for confirmation."""
+        system_prompt = f"""You are an AWS expert specializing in Aurora database analysis.{prompt_template}. When using the shell tool, always set non_interactive=True."""
         setup_bedrock_model()
        # if bedrock_model is None:
         #    setup_bedrock_model()

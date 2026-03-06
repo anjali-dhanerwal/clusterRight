@@ -2,7 +2,7 @@
 
 ## Objective
 
-Perform a comprehensive health check of Aurora PostgreSQL cluster `{cluster_name}`, delivering actionable insights aligned with the **AWS Well-Architected Framework** (all five pillars). The analysis must cover database performance, cost optimization (including Reserved Instances, Database Savings Plans, and commitment strategy comparison), security, reliability, operational excellence, and PostgreSQL version lifecycle (end-of-life status and extended support charges).
+Perform a comprehensive health check of Aurora Database cluster `{cluster_name}`, delivering actionable insights aligned with the **AWS Well-Architected Framework** (all five pillars). The analysis must cover database performance, cost optimization (including Reserved Instances, Database Savings Plans, and commitment strategy comparison), security, reliability, operational excellence, and PostgreSQL version lifecycle (end-of-life status and extended support charges).
 Use official AWS documentation as the authoritative source for version lifecycle, pricing, and best practices. Shell commands should be executed automatically without requiring explicit user confirmation for each operation.
 ---
 
