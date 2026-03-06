@@ -179,3 +179,7 @@ sample api call "curl http://<IP>:8085/invocations  -H "Content-Type: applicatio
 ```bash
 aws s3 cp <Output Files> s3://<Bucket Name>/reports --recursive 
 ```
+
+## Estimated Cost Per Run
+
+Each full health check analysis costs approximately **$1 USD** per execution. This includes Bedrock model inference (input/output tokens), MCP Server. Actual cost may vary slightly depending on cluster size, number of databases, and conversation length.
