@@ -6,6 +6,27 @@
 - SSH access to the instance
 - Sudo privileges
 
+### Database Connectivity Requirement
+
+The Aurora PostgreSQL cluster being reviewed must be accessible from the system where the agent is running. The agent connects to the cluster using the [AWS RDS Data API / PostgreSQL MCP Server](https://github.com/awslabs/mcp) and supports the following connection methods:
+
+- **RDS Data API** (recommended) — requires the Data API to be enabled on the Aurora cluster and the execution role to have `rds-data:ExecuteStatement` permissions.
+- **IAM Database Authentication** — requires IAM auth enabled on the cluster and the `rds-db:connect` permission for the target DB user.
+- **Native PostgreSQL credentials (pgwire)** — requires network connectivity (VPC/security group access) from the agent host to the cluster endpoint on port 5432, along with valid database credentials.
+
+If the cluster is not reachable via any of these methods (e.g., the agent runs outside the VPC with no Data API enabled, or credentials are unavailable), the analysis will still run but will **exclude all database-level diagnostics**, including:
+
+- Table size, bloat, and vacuum analysis
+- Index usage and duplicate index detection
+- Query performance analysis (pg_stat_statements)
+- Configuration parameter review (pg_settings)
+- Connection pool utilization and idle connection counts
+- Transaction ID wraparound risk assessment
+
+The report will still include CloudWatch metrics analysis, cost optimization, version lifecycle assessment, and Well-Architected recommendations based on externally available data.
+
+> **Note — Aurora MySQL:** Database-level diagnostics are currently supported for Aurora PostgreSQL only. For Aurora MySQL clusters, the agent does not connect to the database and the analysis will be limited to CloudWatch metrics, cost optimization, version lifecycle assessment, and Well-Architected recommendations based on externally available data. MySQL support for in-database diagnostics is planned for a future release.
+
 ### Required IAM Roles
 
 1. **EC2 Instance Role**
