@@ -10,7 +10,7 @@ Use official AWS documentation as the authoritative source for version lifecycle
 
 - **Cluster Identifier:** If no cluster name given by user, ask for cluster name
 - **Engine:** Identify engine
-- **Output Directory:** /home/ec2-user or users home directory. ~/reports/ (create if not exists). Save all images and temporary data in this folder.
+- **Output Directory:** /home/ec2-user or home directory. ~/reports/ (create if not exists). Save all images and temporary data in this folder.
 - **Output File:** `Aurora_{cluster_name}_WellArchitected_HealthCheck_{current_epoc}.docx`
 - **Cloud Watch Metrics param :
     Time range:** Use range given by user, if no rabge provided use defualt value as 15 days
