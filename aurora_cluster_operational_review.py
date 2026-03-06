@@ -22,7 +22,7 @@ from datetime import datetime
 # Set socket timeout globally before any network operations
 import socket
 socket.setdefaulttimeout(600)  # 10 minutes
-
+os.environ["AWS_PAGER"] = ""
 # Load environment variables
 load_dotenv()
 
