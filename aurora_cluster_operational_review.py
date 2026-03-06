@@ -4,9 +4,9 @@ Aurora Cluster Review Tool
 
 AWS Aurora cluster analysis using MCP servers and Bedrock AI
 """
-
-import os
 import sys
+sys.dont_write_bytecode = True
+import os
 from dotenv import load_dotenv
 from mcp import StdioServerParameters, stdio_client
 from strands import Agent, tool
@@ -49,7 +49,7 @@ def create_mcp_clients():
         make_client("awslabs.postgres-mcp-server@latest", "postgres_"),
         make_client("awslabs.cloudwatch-mcp-server@latest", "cloudwatch_"),
         make_client("awslabs.billing-cost-management-mcp-server@latest", "pricing_"),
-        make_client("awslabs.aws-documentation-mcp-server@latest", "doc_"),
+        make_client("awslabs.aws-documentation-mcp-server@latest", "doc_")
     )
 
 def ensure_session_token():
@@ -80,7 +80,7 @@ def setup_bedrock_model():
     bedrock_model_id=os.getenv("BEDROCK_MODEL_ID")
     bedrock_model = BedrockModel(
         model_id=bedrock_model_id,
-        max_tokens=128000,
+        max_tokens=80000,
         temperature=0.1,
         region_name=aws_region,
         boto_client_config=boto_config
@@ -125,6 +125,11 @@ def analyze_query(query: str) -> str:
                 system_prompt=system_prompt,
                 tools=tools,
             )
+            # Summarize callback to prevent context overflow
+            def on_context_overflow(agent):
+                agent.conversation_manager.apply_management(agent)
+
+            agent.on_context_window_overflow = on_context_overflow
             result = agent(f"Analyze: {query}")
             return str(result)
 

@@ -125,6 +125,47 @@ Verify logging configuration for compliance, troubleshooting, and audit requirem
   - Prepared statement usage and efficiency (Com_stmt_* counters)
   - Locking contention analysis (Innodb_row_lock_waits, Innodb_row_lock_time_avg)
 
+### 5a. Performance Insights Analysis
+
+**Reference documentation:**
+- [Performance Insights Overview](https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_PerfInsights.html)
+- [Performance Insights API](https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_PerfInsights.API.html)
+
+**Prerequisites:**
+- Verify Performance Insights is enabled on the cluster instances
+- Check retention period (free tier: 7 days; paid: up to 2 years)
+
+**DB Load Analysis:**
+- Average DB load vs. vCPU count (identify saturation)
+- DB load breakdown by wait events (top 10 wait states)
+- DB load breakdown by SQL (top 10 queries by load)
+- DB load breakdown by user/host/database
+- Peak load periods and correlation with application events
+
+**Top SQL Analysis (via Performance Insights):**
+- Top 10 SQL statements by DB load (AAS)
+- Top 10 SQL by average latency
+- Top 10 SQL by calls per second
+- SQL statements with highest wait time contribution
+- Digest-level query grouping for pattern identification
+
+**Wait Event Deep Dive:**
+- Top wait events by category (CPU, IO, Lock, Network, Memory)
+- *PostgreSQL:* Client:ClientRead, IO:DataFileRead, Lock:transactionid, LWLock:buffer_mapping
+- *MySQL:* io/file/innodb/innodb_data_file, synch/mutex/innodb/buf_pool_mutex, io/table/sql/handler
+- Wait event trends over the analysis window (identify emerging bottlenecks)
+
+**Counter Metrics (via Performance Insights):**
+- Active sessions over time
+- Transactions per second (TPS) trends
+- Rows examined vs. rows returned ratio
+- Temp bytes usage trends
+
+**Recommendations:**
+- Correlate Performance Insights findings with CloudWatch metrics and query analysis (Sections 5, 6)
+- Identify queries that are candidates for optimization based on combined DB load and wait event data
+- Recommend Performance Insights retention upgrade if current retention is insufficient for trend analysis
+
 ### 6. Temporary Space Usage
 
 - Top 10 queries writing/reading temporary space
@@ -265,6 +306,8 @@ Verify logging configuration for compliance, troubleshooting, and audit requirem
   Aurora Extended Support Charges
   Database Savings Plans Pricing
   Aurora Monitoring Metrics
+  Performance Insights User Guide
+  Performance Insights Counter Metrics
 
 ---
 

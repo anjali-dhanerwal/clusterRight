@@ -4,14 +4,28 @@ AWS Session Utilities
 Helper functions for generating and managing AWS session tokens
 """
 
+
+import sys
+sys.dont_write_bytecode = True
 import os
 import logging
 import boto3
+from botocore.config import Config
 from dotenv import load_dotenv
+
 
 # Suppress logging
 for logger_name in ['botocore', 'boto3', 'urllib3']:
     logging.getLogger(logger_name).setLevel(logging.ERROR)
+
+NO_CACHE_CONFIG = Config(
+    max_pool_connections=1,
+    retries={'max_attempts': 3}
+)
+
+def _create_sts_client(**kwargs):
+    """Create a fresh STS client with caching disabled."""
+    return boto3.client('sts', config=NO_CACHE_CONFIG, **kwargs)
 
 
 def get_session_token(duration_seconds=3600):
@@ -27,18 +41,13 @@ def get_session_token(duration_seconds=3600):
     try:
         # Load environment variables
         load_dotenv()
-        print (os.getenv("AWS_ACCESS_KEY_ID"))
         # Create STS client
-        sts_client = boto3.client(
-            'sts',
+        sts_client = _create_sts_client(
             aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
             aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
             region_name=os.getenv("AWS_REGION", "us-east-1")
         )
-        
-        # Get session token
         response = sts_client.get_session_token(DurationSeconds=duration_seconds)
-        
         return response['Credentials']
         
     except Exception as e:
@@ -73,11 +82,6 @@ def get_caller_identity():
     try:
         sts_client = boto3.client('sts')
         response = sts_client.get_caller_identity()
-        
-        print(f"User ID: {response.get('UserId')}")
-        print(f"Account: {response.get('Account')}")
-        print(f"ARN: {response.get('Arn')}")
-        
         return response
         
     except Exception as e:
