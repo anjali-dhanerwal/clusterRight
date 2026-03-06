@@ -125,11 +125,6 @@ def analyze_query(query: str) -> str:
                 system_prompt=system_prompt,
                 tools=tools,
             )
-            # Summarize callback to prevent context overflow
-            def on_context_overflow(agent):
-                agent.conversation_manager.apply_management(agent)
-
-            agent.on_context_window_overflow = on_context_overflow
             result = agent(f"Analyze: {query}")
             return str(result)
 
