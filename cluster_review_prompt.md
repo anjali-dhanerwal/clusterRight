@@ -1,8 +1,8 @@
-# Aurora PostgreSQL Well-Architected Health Check
+# Aurora Well-Architected Health Check
 
 ## Objective
 
-Perform a comprehensive health check of Aurora Database cluster `{cluster_name}`, delivering actionable insights aligned with the **AWS Well-Architected Framework** (all five pillars). The analysis must cover database performance, cost optimization (including Reserved Instances, Database Savings Plans, and commitment strategy comparison), security, reliability, operational excellence, and PostgreSQL version lifecycle (end-of-life status and extended support charges).
+Perform a comprehensive health check of Aurora Database cluster `{cluster_name}`, delivering actionable insights aligned with the **AWS Well-Architected Framework** (all five pillars). The analysis must cover database performance, cost optimization (including Reserved Instances, Database Savings Plans, and commitment strategy comparison), security, reliability, operational excellence, and version lifecycle (end-of-life status and extended support charges).
 Use official AWS documentation as the authoritative source for version lifecycle, pricing, and best practices. Shell commands should be executed automatically without requiring explicit user confirmation for each operation.
 ---
 
@@ -46,33 +46,64 @@ Include relevant log excerpts in findings where applicable.
 
 - Idle connection count and connection pool utilization
 - Top 5 databases by size; top 10 largest tables
-- Database and table age analysis (transaction ID wraparound risk)
+- **PostgreSQL-specific:**
+  - Database and table age analysis (transaction ID wraparound risk)
+  - Top 5 aged tables requiring maintenance (autovacuum assessment)
 - Buffer cache hit ratio (target: 90–95%)
-- Top 5 aged tables requiring maintenance
+  *PostgreSQL:* pg_stat_bgwriter / shared buffer stats
+  *MySQL:* InnoDB buffer pool hit ratio (Innodb_buffer_pool_read_requests vs Innodb_buffer_pool_reads)
+- **MySQL-specific:**
+  - InnoDB buffer pool utilization (Innodb_buffer_pool_pages_free vs Innodb_buffer_pool_pages_total)
+  - Table fragmentation analysis (data length vs index length vs data free)
+  - Thread cache efficiency (Threads_created vs Connections)
+
 
 ### 2. Index Analysis & Optimization
 
 - Duplicate and unused index detection
+  *PostgreSQL:* via pg_stat_user_indexes (index scan counts)
+  *MySQL:* via sys.schema_unused_indexes and sys.schema_redundant_indexes
 - Index selectivity and efficiency evaluation
 - Missing index recommendations based on query patterns
+  *PostgreSQL:* sequential scan analysis via pg_stat_user_tables
+  *MySQL:* performance_schema statement analysis and sys.statements_with_full_table_scans
 - Connection pooling and caching strategy assessment
+- **MySQL-specific:**
+  - Index cardinality accuracy (ANALYZE TABLE recency)
+  - Adaptive hash index effectiveness (Innodb_adaptive_hash_searches vs Innodb_adaptive_hash_searches_btree)
+  - Full-text index and spatial index review (if applicable)
 
 ### 3. Table Health & Maintenance
 
-- Most bloated tables (candidates for VACUUM)
-- Top 10 largest tables with last vacuum timestamp
-- Auto-vacuum configuration review and effectiveness
+- **PostgreSQL-specific:**
+  - Most bloated tables (candidates for VACUUM)
+  - Top 10 largest tables with last vacuum/autovacuum timestamp
+  - Autovacuum configuration review and effectiveness
+  - Dead tuple ratio analysis
+- **MySQL-specific:**
+  - Table fragmentation detection (DATA_FREE from information_schema.TABLES)
+  - Tables requiring OPTIMIZE TABLE (high free space ratio)
+  - InnoDB row format review (COMPACT vs DYNAMIC vs COMPRESSED)
+  - Auto-increment capacity usage (current value vs max for column type)
+  - information_schema.TABLES staleness — UPDATE_TIME review for maintenance recency
 - Data archiving candidates (for Amazon S3 migration)
 
 ### 4. Configuration Parameters
 
-Review and assess the following parameter groups:
+Review and assess the following parameter groups (not limited to these — refer to the official [PostgreSQL documentation](https://www.postgresql.org/docs/) and [
+MySQL documentation](https://dev.mysql.com/doc/) for the specific engine version in use to identify additional relevant parameters):
 
 **Core PostgreSQL:**
 `shared_buffers`, `effective_cache_size`, `work_mem`, `maintenance_work_mem`, `checkpoint_completion_target`
 
-**Aurora-Specific:**
+**Core MySQL:**
+innodb_buffer_pool_size, innodb_log_file_size, innodb_flush_log_at_trx_commit, max_connections, table_open_cache, tmp_table_size
+
+**Aurora PostgreSQL-Specific:**
 `aurora.enable_zdr`, `aurora.fading_master_restart_timeout`, `aurora.max_connections_limit`
+
+**Aurora MySQL-Specific:**
+aurora_disable_hash_join, aurora_parallel_query, aurora_read_replica_read_committed, aurora_binlog_replication_max_yield_seconds, aurora_lab_mode
 
 **Logging & Security:**
 Verify logging configuration for compliance, troubleshooting, and audit requirements.
@@ -84,12 +115,27 @@ Verify logging configuration for compliance, troubleshooting, and audit requirem
 - Top 10 UPDATE/DELETE operations by table
 - Top 10 I/O-intensive tables
 - Query execution plan review for problematic queries
-- Wait event analysis (IO:DataFileWrite, IO:DataFileRead, etc.)
+- Wait event analysis
+  - *PostgreSQL:* IO:DataFileWrite, IO:DataFileRead, etc. via pg_stat_activity
+  - *MySQL:* performance_schema.events_waits_summary_global_by_event_name (e.g., io/file/innodb/*, synch/mutex/*)
+- **MySQL-specific:**
+  - Slow query log analysis (queries exceeding long_query_time)
+  - Full table scan frequency (Select_scan, Select_full_join status counters)
+  - Sort and temp table spill-to-disk rates (Sort_merge_passes, Created_tmp_disk_tables)
+  - Prepared statement usage and efficiency (Com_stmt_* counters)
+  - Locking contention analysis (Innodb_row_lock_waits, Innodb_row_lock_time_avg)
 
 ### 6. Temporary Space Usage
 
 - Top 10 queries writing/reading temporary space
-- `work_mem` assessment against temp space usage patterns
+  *PostgreSQL:* via pg_stat_statements (temp_blks_read, temp_blks_written)
+  *MySQL:* via performance_schema.events_statements_summary_by_digest (SUM_CREATED_TMP_DISK_TABLES, SUM_CREATED_TMP_TABLES)
+- **PostgreSQL-specific:**
+  - work_mem assessment against temp space usage patterns
+- **MySQL-specific:**
+  - tmp_table_size and max_heap_table_size assessment against disk-based temp table creation rates
+  - Internal temp table engine usage review (internal_tmp_mem_storage_engine — TempTable vs MEMORY)
+  - InnoDB temp tablespace usage (innodb_temp_data_file_path sizing)
 
 ### 7. Cost Optimization
 
@@ -126,7 +172,7 @@ Verify logging configuration for compliance, troubleshooting, and audit requirem
 - Cross-region disaster recovery assessment
 - Maintenance window optimization
 
-### 11. PostgreSQL Version Lifecycle
+### 11.Version Lifecycle
 
 - Check current engine version against AWS-published end-of-life dates
 - Flag if the version is in extended support and quantify additional charges

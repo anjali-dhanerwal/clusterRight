@@ -61,6 +61,21 @@
       "Resource": "*"
     },
     {
+        "Sid": "SecurityGroups",
+        "Effect": "Allow",
+        "Action": [
+            "ec2:DescribeSecurityGroupRules",
+            "ec2:DescribeSecurityGroupReferences",
+            "ec2:DescribeSecondarySubnets",
+            "ec2:GetSecurityGroupsForVpc",
+            "ec2:DescribeSecurityGroupVpcAssociations",
+            "ec2:GetSubnetCidrReservations",
+            "ec2:DescribeSubnets",
+            "ec2:DescribeSecurityGroups"
+        ],
+        "Resource": "*"
+    },
+    {
       "Sid": "CloudWatchAndLogsAccess",
       "Effect": "Allow",
       "Action": [
