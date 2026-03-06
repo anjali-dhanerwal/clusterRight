@@ -135,6 +135,7 @@ def get_mcp_environment():
         "AWS_SECRET_ACCESS_KEY": os.getenv("AWS_SECRET_ACCESS_KEY"),
         "AWS_SESSION_TOKEN": os.getenv("AWS_SESSION_TOKEN"),
         "AWS_REGION": aws_region,
+        "AWS_PAGER": "",
         "FASTMCP_LOG_LEVEL": "ERROR",
     }
 
