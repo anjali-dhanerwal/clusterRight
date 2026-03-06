@@ -56,6 +56,7 @@ The report will still include CloudWatch metrics analysis, cost optimization, ve
      - **CloudWatch**: Read access to metrics, logs, alarms, and anomaly detection
      - **Cost Explorer & Billing**: Access to cost data, budgets, savings plans, and optimization recommendations
      - **Compute Optimizer**: Access to EC2, RDS, Lambda, and ECS recommendations
+     - Refer : user-policy.json and update resources to limit the access.
    
    The role requires four managed policies:
    
@@ -85,7 +86,6 @@ The report will still include CloudWatch metrics analysis, cost optimization, ve
    - `cloudformation:GetResource` - Get resource details
    - `cloudformation:GetResourceRequestStatus` - Check resource request status
    - `cloudformation:ListResourceRequests` - List resource requests
-Refer : user-policy.json and update resources to limit the access.
 
 ## Installation Steps
 
