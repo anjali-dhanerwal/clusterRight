@@ -61,6 +61,22 @@
       "Resource": "*"
     },
     {
+        "Sid": "RDSPI",
+        "Effect": "Allow",
+        "Action": [
+            "pi:GetDimensionKeyDetails",
+            "pi:GetResourceMetadata",
+            "pi:GetPerformanceAnalysisReport",
+            "pi:ListAvailableResourceDimensions",
+            "pi:ListTagsForResource",
+            "pi:DescribeDimensionKeys",
+            "pi:ListAvailableResourceMetrics",
+            "pi:GetResourceMetrics",
+            "pi:ListPerformanceAnalysisReports"
+        ],
+        "Resource": "*"
+    },
+    {
         "Sid": "SecurityGroups",
         "Effect": "Allow",
         "Action": [
