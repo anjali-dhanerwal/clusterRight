@@ -31,68 +31,26 @@ app = BedrockAgentCoreApp()
 
 # Global variables
 aws_region = os.getenv("AWS_REGION", "us-east-1")
-
-mcp_server_postgres = MCPClient(
-            lambda: stdio_client(
+def create_mcp_clients():
+    """Create fresh MCP client instances"""
+    env = get_mcp_environment()
+    def make_client(args, prefix):
+        return MCPClient(
+            lambda a=args: stdio_client(
                 StdioServerParameters(
-                    command="uvx", 
-                    args=["awslabs.postgres-mcp-server@latest"],
-                    startup_timeout=120,
-                    env=get_mcp_environment()
+                    command="uvx", args=[a],
+                    startup_timeout=120, env=env
                 )
             ),
-            prefix="postgres_"
-
+            prefix=prefix
         )
-
-mcp_server_cloudwatch = MCPClient(
-            lambda: stdio_client(
-                StdioServerParameters(
-                    command="uvx", 
-                    args=["awslabs.cloudwatch-mcp-server@latest"],
-                    startup_timeout=120,
-                    env=get_mcp_environment()
-                )
-            ),
-            prefix="cloudwatch_"
-
-        )
-
-mcp_server_cloud_control = MCPClient(
-    lambda: stdio_client(
-        StdioServerParameters(
-            command="uvx", 
-            args=["awslabs.ccapi-mcp-server@latest"],
-            startup_timeout=120,
-            env=get_mcp_environment()
-        )
-    ),
-    prefix="cloud_"
-)
-
-mcp_server_pricing = MCPClient(
-    lambda: stdio_client(
-        StdioServerParameters(
-            command="uvx", 
-            args=["awslabs.billing-cost-management-mcp-server@latest"],
-            startup_timeout=120,
-            env=get_mcp_environment()
-        )
-    ),
-    prefix="pricing_"
-)
-
-mcp_server_doc = MCPClient(
-    lambda: stdio_client(
-        StdioServerParameters(
-            command="uvx", 
-            args=["awslabs.aws-documentation-mcp-server@latest"],
-            startup_timeout=120,
-            env=get_mcp_environment()
-        )
-    ),
-    prefix="doc_"
-)
+    return (
+        make_client("awslabs.ccapi-mcp-server@latest", "cloud_"),
+        make_client("awslabs.postgres-mcp-server@latest", "postgres_"),
+        make_client("awslabs.cloudwatch-mcp-server@latest", "cloudwatch_"),
+        make_client("awslabs.billing-cost-management-mcp-server@latest", "pricing_"),
+        make_client("awslabs.aws-documentation-mcp-server@latest", "doc_"),
+    )
 
 def ensure_session_token():
     """Ensure valid session token exists"""
@@ -140,49 +98,42 @@ def get_mcp_environment():
     }
 
 def analyze_query(query: str) -> str:
-    """Analyze AWS queries using MCP tools and Bedrock AI"""
-    
     try:
         ensure_session_token()
-        # Read the prompt template from file
         prompt_file = os.path.join(os.path.dirname(__file__), "cluster_review_prompt.md")
         with open(prompt_file, 'r') as f:
             prompt_template = f.read()
-        
+
         system_prompt = f"""You are an AWS expert specializing in Aurora database analysis.{prompt_template}. When using the shell tool, always set non_interactive=True."""
         setup_bedrock_model()
-       # if bedrock_model is None:
-        #    setup_bedrock_model()
-        
+
         print("🔄 Connecting to MCP servers...")
-        with (mcp_server_cloud_control,mcp_server_postgres,mcp_server_cloudwatch,mcp_server_pricing,mcp_server_doc):
+        cloud, postgres, cloudwatch, pricing, doc = create_mcp_clients()
+
+        with cloud, postgres, cloudwatch, pricing, doc:
             print("✅ MCP servers connected")
-            print("🔄 Loading tools...")
-            postgres_tools = mcp_server_postgres.list_tools_sync()
-            cloud_control_tools = mcp_server_cloud_control.list_tools_sync()
-            cloudwatch_tools=mcp_server_cloudwatch.list_tools_sync()
-            pricing_tools=mcp_server_pricing.list_tools_sync()
-            doc_tools=mcp_server_doc.list_tools_sync()
-            print(f"✅ Loaded {len(postgres_tools)} postgres tools, {len(cloud_control_tools)} cloud control tools, {len(cloudwatch_tools)} cloudwatch tools,{len(pricing_tools)} pricing tools,{len(doc_tools)} doc tools")
-            
-            tools=(postgres_tools,cloud_control_tools,cloudwatch_tools,pricing_tools,doc_tools,shell)
-            print("🔄 Initializing agent...")
+            tools = (
+                postgres.list_tools_sync(),
+                cloud.list_tools_sync(),
+                cloudwatch.list_tools_sync(),
+                pricing.list_tools_sync(),
+                doc.list_tools_sync(),
+                shell,
+            )
             agent = Agent(
                 model=bedrock_model,
                 system_prompt=system_prompt,
                 tools=tools,
             )
-            
-            print("🔄 Sending query to agent...")
             result = agent(f"Analyze: {query}")
-            print("✅ Analysis complete")
             return str(result)
-            
+
     except Exception as e:
         import traceback
-        error_details = traceback.format_exc()
-        print(f"❌ Error: {error_details}")
-        return f"Analysis failed: {str(e)}\n\nDetails:\n{error_details}"
+        return f"Analysis failed: {str(e)}\n\n{traceback.format_exc()}"
+
+        
+
 
 @app.entrypoint
 async def invoke(payload):
